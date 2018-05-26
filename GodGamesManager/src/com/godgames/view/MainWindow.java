@@ -5,7 +5,6 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +25,8 @@ import javax.swing.table.DefaultTableModel;
 
 import com.godgames.dao.Database;
 import com.godgames.model.Register;
-import com.godgames.util.DateConverter;
 import com.godgames.util.ErrorMessage;
+import com.godgames.util.FormatConverter;
 import com.godgames.util.Label;
 
 public class MainWindow {
@@ -79,7 +78,7 @@ public class MainWindow {
 		frmMain.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		
 		JPanel panelRegisters = new JPanel();
-		tabbedPane.addTab(Label.REGISTERS, null, panelRegisters, null);
+		tabbedPane.addTab(Label.TITLE_TAB_REGISTERS, null, panelRegisters, null);
 		
 		JButton btnAdd = new JButton(Label.ADD);
 		btnAdd.addActionListener(new ActionListener() {
@@ -186,15 +185,15 @@ public class MainWindow {
 		tableTotal.getColumnModel().getColumn(2).setPreferredWidth(50);
 		
 		JPanel panel_1 = new JPanel();
-		tabbedPane.addTab(Label.CHANGE, null, panel_1, null);
+		tabbedPane.addTab(Label.TITLE_TAB_CHANGE, null, panel_1, null);
 		
 		btnToday.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String today = DateConverter.date2String(new Date());
+				String today = FormatConverter.date2String(new Date());
 				updateRegistersTable(today, today);
-				updateTotalTable(today, today);
+				updateTotalTable();
 			}
 		});
 		
@@ -202,11 +201,11 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String monthYear = DateConverter.date2String(new Date()).split("/", 2)[1];
+				String monthYear = FormatConverter.date2String(new Date()).split("/", 2)[1];
 				String startDate = "01/" + monthYear;
 				String endDate = "31/" + monthYear;
 				updateRegistersTable(startDate, endDate);
-				updateTotalTable(startDate, endDate);
+				updateTotalTable();
 			}
 		});
 		
@@ -214,11 +213,11 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String year = DateConverter.date2String(new Date()).split("/")[2];
+				String year = FormatConverter.date2String(new Date()).split("/")[2];
 				String startDate = "01/01/" + year;
 				String endDate = "31/12/" + year;
 				updateRegistersTable(startDate, endDate);
-				updateTotalTable(startDate, endDate);
+				updateTotalTable();
 			}
 		});
 		
@@ -228,12 +227,7 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				DateWindow date = new DateWindow(MainWindow.this);
 				date.getFrame().setVisible(true);
-				if (date.isConfirmed()) {
-					String startDate = date.getStartDate();
-					String endDate = date.getEndDate();
-					updateRegistersTable(startDate, endDate);
-					updateTotalTable(startDate, endDate);
-				}
+				updateTotalTable();
 			}
 		});
 		
@@ -241,16 +235,12 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				NewWindow newRegister = new NewWindow(MainWindow.this);
+				RegisterWindow newRegister = new RegisterWindow(MainWindow.this);
 				newRegister.getFrame().setVisible(true);
-				if (newRegister.isConfirmed()) {
-					addRegister(new Register(newRegister.getDate(), newRegister.getStartTime(), newRegister.getEndTime(),
-							newRegister.getTV(), newRegister.isPaid(), newRegister.getValue()));
-				}
+				updateTotalTable();
 			}
 		});
 		
-		//TODO tentar transformar new edit na mesma janela
 		btnEdit.addActionListener(new ActionListener() {
 			
 			@Override
@@ -263,8 +253,9 @@ public class MainWindow {
 							(Integer) tableModelRegisters.getValueAt(row, 3),
 							((String) tableModelRegisters.getValueAt(row, 4)).equals("Sim"),
 							Float.valueOf(((String) tableModelRegisters.getValueAt(row, 5)).split(" ")[1].replace(",", ".")));
-					EditWindow editRegister = new EditWindow(MainWindow.this, register);
+					RegisterWindow editRegister = new RegisterWindow(MainWindow.this, register);
 					editRegister.getFrame().setVisible(true);
+					updateTotalTable();
 				}
 			}
 		});
@@ -273,24 +264,20 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Remover do BD
 				int row = tableRegisters.getSelectedRow();
 				if (row != -1) {
 					String date = (String) tableModelRegisters.getValueAt(row, 0);
 					String hour = (String) tableModelRegisters.getValueAt(row, 1);
 					removeRegister(date, hour);
-					tableModelRegisters.removeRow(row);
-					//TODO alterar manualmente o valor da coluna total busca
-//					String today = DateConverter.date2String(new Date());
-//					updateTotalTable(today, today);
+					updateTotalTable();
 				}
 			}
 		});
 		
 		createDatabaseConnection("localhost", "god_games", "root", "root");
-		String today = DateConverter.date2String(new Date());
+		String today = FormatConverter.date2String(new Date());
 		updateRegistersTable(today, today);
-		updateTotalTable(today, today);
+		updateTotalTable();
 
 	}
 	
@@ -298,10 +285,34 @@ public class MainWindow {
 		try {
 			database = new Database(serverName, databaseName, user, password);
 		} catch (ClassNotFoundException e1) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.DRIVER_NOT_FOUND, e1);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DRIVER_NOT_FOUND, e1);
 		} catch (SQLException e1) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.DATABASE_CONNECTION, e1);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DATABASE_CONNECTION, e1);
 		}
+	}
+	
+	private Object[] register2TableObject(Register register) {
+		Object object[] = new Object[6];
+		object[0] = register.getDate();
+		object[1] = register.getStartTime();
+		object[2] = register.getEndTime();
+		object[3] = register.getTv();
+		if (register.isPaid())
+			object[4] = Label.YES;
+		else
+			object[4] = Label.NO;
+		object[5] = FormatConverter.float2Currency(register.getValue());
+		return object;
+	}
+	
+	private Register tableObject2Register(int row) throws ParseException{
+		return new Register(
+				(String)tableModelRegisters.getValueAt(row, 0),
+				(String)tableModelRegisters.getValueAt(row, 1),
+				(String)tableModelRegisters.getValueAt(row, 2),
+				(int)tableModelRegisters.getValueAt(row, 3),
+				((String)tableModelRegisters.getValueAt(row, 4)).equals(Label.YES),
+				FormatConverter.currency2Float((String)tableModelRegisters.getValueAt(row, 5)));
 	}
 	
 	public void updateRegistersTable(String startDate, String endDate) {
@@ -309,38 +320,29 @@ public class MainWindow {
 			List<Register> registers = database.getRegistersByDate(startDate, endDate);
 			tableModelRegisters.setRowCount(0);
 			for (Register register : registers) {
-				Object object[] = new Object[6];
-				object[0] = register.getDate();
-				object[1] = register.getStartTime();
-				object[2] = register.getEndTime();
-				object[3] = register.getTv();
-				if (register.isPaid())
-					object[4] = "Sim";
-				else
-					object[4] = "Não";
-				object[5] = NumberFormat.getCurrencyInstance().format(register.getValue());
+				Object object[] = register2TableObject(register);
 				tableModelRegisters.addRow(object);
 			}
 		} catch (SQLException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.DATABASE_CONNECTION, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DATABASE_CONNECTION, e);
 		} catch (ParseException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.CONVERTING_DATE, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_CONVERTING_DATE, e);
 		}
 	}
 	
-	public void updateTotalTable(String startDate, String endDate) {		
+	public void updateTotalTable() {		
 		try {
-			String today = DateConverter.date2String(new Date());
+			String today = FormatConverter.date2String(new Date());
 			List<Register> registers;
 			registers = database.getRegistersByDate(today, today);
 			Object object[] = new Object[4];
-			double total = 0;
+			float total = 0;
 			for (Register register : registers) {
 				total += register.getValue();
 			}
-			object[0] = NumberFormat.getCurrencyInstance().format(total);
+			object[0] = FormatConverter.float2Currency(total);
 			
-			String monthYear = DateConverter.date2String(new Date()).split("/", 2)[1];
+			String monthYear = FormatConverter.date2String(new Date()).split("/", 2)[1];
 			String firstDay = "01/" + monthYear;
 			String lastDay = "31/" + monthYear;
 			registers = database.getRegistersByDate(firstDay, lastDay);
@@ -348,9 +350,9 @@ public class MainWindow {
 			for (Register register : registers) {
 				total += register.getValue();
 			}
-			object[1] = NumberFormat.getCurrencyInstance().format(total);
+			object[1] = FormatConverter.float2Currency(total);
 			
-			String year = DateConverter.date2String(new Date()).split("/")[2];
+			String year = FormatConverter.date2String(new Date()).split("/")[2];
 			firstDay = "01/01/" + year;
 			lastDay = "31/12/" + year;
 			registers = database.getRegistersByDate(firstDay, lastDay);
@@ -358,54 +360,60 @@ public class MainWindow {
 			for (Register register : registers) {
 				total += register.getValue();
 			}
-			object[2] = NumberFormat.getCurrencyInstance().format(total);
+			object[2] = FormatConverter.float2Currency(total);
 			
-			registers = database.getRegistersByDate(startDate, endDate);
 			total = 0;
-			for (Register register : registers) {
-				total += register.getValue();
-			}
-			object[3] = NumberFormat.getCurrencyInstance().format(total);
+			for (int i = 0; i < tableModelRegisters.getRowCount(); i++)
+				total += FormatConverter.currency2Float((String)tableModelRegisters.getValueAt(i, 5));
+			object[3] = FormatConverter.float2Currency(total);
 			
 			tableModelTotal.setRowCount(0);
 			tableModelTotal.addRow(object);
 		} catch (SQLException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.DATABASE_CONNECTION, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DATABASE_CONNECTION, e);
 		} catch (ParseException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.CONVERTING_DATE, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_CONVERTING_DATE, e);
 		}
 	}
 	
 	public void addRegister(Register register) {
 		try {
 			database.insertRegister(register);
-			Object object[] = new Object[6];
-			object[0] = register.getDate();
-			object[1] = register.getStartTime();
-			object[2] = register.getEndTime();
-			object[3] = register.getTv();
-			if (register.isPaid())
-				object[4] = "Sim";
-			else
-				object[4] = "Não";
-			object[5] = NumberFormat.getCurrencyInstance().format(register.getValue());
+			Object object[] = register2TableObject(register);
 			tableModelRegisters.addRow(object);
 			
 			float searchTotal = Float.parseFloat(((String) tableModelTotal.getValueAt(0, 3))
 					.split(" ")[1].replace(",", "."));
 			searchTotal += register.getValue();
-			tableModelTotal.setValueAt(NumberFormat.getCurrencyInstance().format(searchTotal), 0, 3);
+			tableModelTotal.setValueAt(FormatConverter.float2Currency(searchTotal), 0, 3);
 		} catch (SQLException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.INSERTING_DATABASE_DATA, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_INSERTING_DATABASE_DATA, e);
 		}
 	}
 	
 	public void removeRegister(String dateKey, String timeKey) {
 		try {
 			database.deleteRegister(dateKey, timeKey);
+			tableModelRegisters.removeRow(tableRegisters.getSelectedRow());
 		} catch (SQLException e) {
-			ErrorMessage.showErrorMessage(frmMain, ErrorMessage.REMOVING_DATABASE_DATA, e);
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_REMOVING_DATABASE_DATA, e);
 		}
+	}
+	
+	public void editRegister(String dateKey, String timeKey, Register register) {
+		try {
+			database.deleteRegister(dateKey, timeKey);
+		} catch (SQLException e) {
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_REMOVING_DATABASE_DATA, e);
+		}
+		try {
+			database.insertRegister(register);
+		} catch (SQLException e) {
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_INSERTING_DATABASE_DATA, e);
+		}
+		Object tableRegister[] = register2TableObject(register);
+		for (int i = 0; i < tableRegister.length; i++)
+			tableModelRegisters.setValueAt(tableRegister[i], tableRegisters.getSelectedRow(), i);
 	}
 	
 	public JFrame getFrame(){

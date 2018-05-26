@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.godgames.model.Register;
-import com.godgames.util.DateConverter;
+import com.godgames.util.FormatConverter;
 
 public class Database {
 	private Connection connection;
@@ -51,7 +51,7 @@ public class Database {
 										+ "data <= STR_TO_DATE('" + endDate + "', '%d/%m/%Y') "
 										+ "order by data;");
 		while (rs.next()) {
-			Register register = new Register(DateConverter.bigEndian2LittleEndian(rs.getString(1)),
+			Register register = new Register(FormatConverter.bigEndian2LittleEndian(rs.getString(1)),
 					rs.getString(2), rs.getString(3),
 					rs.getInt(4), rs.getBoolean(5), rs.getFloat(6));
 			registers.add(register);						

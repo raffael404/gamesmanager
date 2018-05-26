@@ -20,7 +20,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import com.godgames.model.Register;
-import com.godgames.util.DateConverter;
+import com.godgames.util.FormatConverter;
 
 public class NewWindow {
 

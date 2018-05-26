@@ -14,39 +14,14 @@ import javax.swing.JPanel;
 
 import org.jdesktop.swingx.JXDatePicker;
 
-import com.godgames.util.DateConverter;
+import com.godgames.util.FormatConverter;
+import com.godgames.util.Label;
 
 public class DateWindow {
 
 	private JDialog dlgDate;
 	private JXDatePicker pickerFrom, pickerTo;
 	private MainWindow mainWindow;
-	
-	private boolean confirmed = false;
-	
-//	/**
-//	 * Launch the application.
-//	 */
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					DateWindow window = new DateWindow();
-//					window.dlgDate.setVisible(true);
-//					System.out.println("teste");
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-//
-//	/**
-//	 * Create the application.
-//	 */
-//	public DateWindow() {
-//		initialize();
-//	}
 	
 	/**
 	 * Create the application.
@@ -63,7 +38,7 @@ public class DateWindow {
 		dlgDate = new JDialog();
 		dlgDate.setModal(true);
 		dlgDate.setResizable(false);
-		dlgDate.setTitle("Defina o intervalo de tempo");
+		dlgDate.setTitle(Label.TITLE_WINDOW_DATE);
 		dlgDate.setBounds(100, 100, 405, 85);
 		dlgDate.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		dlgDate.setLocationRelativeTo(mainWindow.getFrame());
@@ -90,15 +65,15 @@ public class DateWindow {
         pickerTo.setFormats(new SimpleDateFormat("dd/MM/yyyy"));
         panelTo.add(pickerTo);
         
-        JButton btnOk = new JButton("OK");
+        JButton btnOk = new JButton(Label.OK);
         btnOk.setBounds(288, 11, 89, 32);
         panel.add(btnOk);
         
-        JLabel lblFrom = new JLabel("De: ");
+        JLabel lblFrom = new JLabel(Label.FROM);
         lblFrom.setBounds(10, 11, 30, 32);
         panel.add(lblFrom);
         
-        JLabel lblTo = new JLabel("At\u00E9: ");
+        JLabel lblTo = new JLabel(Label.TO);
         lblTo.setBounds(149, 11, 30, 32);
         panel.add(lblTo);
         
@@ -106,11 +81,9 @@ public class DateWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				String from = DateConverter.date2String(pickerFrom.getDate());
-//				String to = DateConverter.date2String(pickerTo.getDate());
-//				mainWindow.updateRegistersTable(from, to);
-//				mainWindow.updateTotalTable(from, to);
-				confirmed = true;
+				String from = FormatConverter.date2String(pickerFrom.getDate());
+				String to = FormatConverter.date2String(pickerTo.getDate());
+				mainWindow.updateRegistersTable(from, to);
 				dlgDate.dispose();
 			}
 		});
@@ -119,16 +92,5 @@ public class DateWindow {
 	public JDialog getFrame(){
 		return this.dlgDate;
 	}
-	
-	public String getStartDate(){
-		return DateConverter.date2String(pickerFrom.getDate());
-	}
-	
-	public String getEndDate(){
-		return DateConverter.date2String(pickerTo.getDate());
-	}
-	
-	public boolean isConfirmed(){
-		return confirmed;
-	}
+
 }
