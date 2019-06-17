@@ -1,7 +1,6 @@
 package com.godgames.view;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -17,14 +16,19 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.UIManager;
+import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.godgames.dao.Database;
@@ -32,11 +36,6 @@ import com.godgames.model.Register;
 import com.godgames.util.ErrorMessage;
 import com.godgames.util.FormatConverter;
 import com.godgames.util.Label;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
-import javax.swing.JPasswordField;
 
 public class MainWindow {
 
@@ -51,24 +50,6 @@ public class MainWindow {
 	private JTextField textFieldUser;
 	private JTextField textFieldHourPrice;
 	private JPasswordField passwordField;
-
-	/**
-	 * Launch the application.
-	 */
-	//TODO padronizar o tamanho e a posição dos componentes
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//					MainWindow window = new MainWindow();
-//					window.frmMain.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
 
 	/**
 	 * Create the application.
@@ -97,10 +78,6 @@ public class MainWindow {
 		JButton btnAdd = new JButton(Label.ADD);
 		JButton btnEdit = new JButton(Label.EDIT);
 		JButton btnRemove = new JButton(Label.REMOVE);
-//		btnAdd.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//			}
-//		});
 		
 		JScrollPane scrollPaneRegisters = new JScrollPane();
 		
@@ -308,7 +285,7 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				RegisterWindow newRegister = new RegisterWindow(MainWindow.this, null, Float.valueOf((String) textFieldHourPrice.getText()));
+				RegisterWindow newRegister = new RegisterWindow(MainWindow.this, null, Float.valueOf(((String) textFieldHourPrice.getText()).replace(",", ".")));
 				newRegister.getFrame().setVisible(true);
 				updateTotalTable();
 			}
@@ -320,15 +297,14 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				int row = tableRegisters.getSelectedRow();
 				if (row != -1) {
-					Register register = new Register((String) tableModelRegisters.getValueAt(row, 0),
-							(String) tableModelRegisters.getValueAt(row, 1),
-							(String) tableModelRegisters.getValueAt(row, 2),
-							(Integer) tableModelRegisters.getValueAt(row, 3),
-							((String) tableModelRegisters.getValueAt(row, 4)).equals("Sim"),
-							Float.valueOf(((String) tableModelRegisters.getValueAt(row, 5)).substring(3).replace(",", ".")));
-					RegisterWindow editRegister = new RegisterWindow(MainWindow.this, register, Float.valueOf((String) textFieldHourPrice.getText()));
-					editRegister.getFrame().setVisible(true);
-					updateTotalTable();
+					try {
+						Register register = tableObject2Register(row);
+						RegisterWindow editRegister = new RegisterWindow(MainWindow.this, register, Float.valueOf(((String) textFieldHourPrice.getText()).replace(",",  ".")));
+						editRegister.getFrame().setVisible(true);
+						updateTotalTable();
+					} catch (ParseException e1) {
+						ErrorMessage.showErrorMessage(frmMain, Label.ERROR_WRONG_FORMAT, e1);
+					}
 				}
 			}
 		});
@@ -369,6 +345,7 @@ public class MainWindow {
 					String hourPrice = ((String) textFieldHourPrice.getText()).replace(",", ".");
 					Float.valueOf(hourPrice);
 					Files.write(Paths.get(Label.SETTINGS_FILE_NAME), hourPrice.getBytes());
+					JOptionPane.showMessageDialog(frmMain, Label.HOUR_PRICE_CHANGED_TO + hourPrice, Label.SUCCESSFUL_OPERATION, JOptionPane.INFORMATION_MESSAGE);
 				} catch (NumberFormatException e1) {
 					ErrorMessage.showErrorMessage(frmMain, Label.ERROR_WRONG_FORMAT, e1);
 				} catch (Exception e1) {
@@ -376,8 +353,6 @@ public class MainWindow {
 				}
 			}
 		});
-		
-		//TODO formatar os campos de texto float pra mostrarem 2 casas decimais
 		
 		try {
 			String[] credentials = new String(Files.readAllBytes(Paths.get(Label.CREDENTIALS_FILE_NAME))).split("\n");
@@ -391,11 +366,11 @@ public class MainWindow {
 		
 		try {
 			String hourPrice = new String(Files.readAllBytes(Paths.get(Label.SETTINGS_FILE_NAME)));
-			textFieldHourPrice.setText(hourPrice);
+			textFieldHourPrice.setText(String.format("%.2f", Float.valueOf(hourPrice)));
 		} catch (NoSuchFileException e) {
 			try {
 				Files.write(Paths.get(Label.SETTINGS_FILE_NAME), "2".getBytes());
-				textFieldHourPrice.setText("2");
+				textFieldHourPrice.setText(String.format("%.2f", 2));
 			} catch (IOException e1) {
 				ErrorMessage.showErrorMessage(frmMain, Label.ERROR_SAVING_SETTINGS, e1);
 			}
@@ -499,11 +474,6 @@ public class MainWindow {
 			database.insertRegister(register);
 			Object object[] = register2TableObject(register);
 			tableModelRegisters.addRow(object);
-			
-//			float searchTotal = Float.parseFloat(((String) tableModelTotal.getValueAt(0, 3))
-//					.split(" ")[1].replace(",", "."));
-//			searchTotal += register.getValue();
-//			tableModelTotal.setValueAt(FormatConverter.float2Currency(searchTotal), 0, 3);
 		} catch (SQLException e) {
 			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_INSERTING_DATABASE_DATA, e);
 		}

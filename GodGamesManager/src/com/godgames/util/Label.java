@@ -3,7 +3,7 @@ package com.godgames.util;
 public class Label {
 	
 	//Titulos
-	public static String PROGRAM_NAME = "God Games Manager Alpha 1";
+	public static String PROGRAM_NAME = "God Games Manager 1.0";
 	public static String TITLE_TAB_REGISTERS = "Registros";
 	public static String TITLE_TAB_CHANGE = "Troco";
 	public static String TITLE_TAB_SETTINGS = "Configurações";
@@ -47,7 +47,7 @@ public class Label {
 	public static String CHANGE = "Alterar";
 	public static String DELETE = "Apagar";
 	
-	//Mensagens de erro
+	//Mensagens de popup
 	public static String ERROR_CONVERTING_DATE = "Erro ao converter o formato de data!";
 	public static String ERROR_DRIVER_NOT_FOUND = "Driver nao encontrado!";
 	public static String ERROR_DATABASE_CONNECTION = "Erro de conexão com o Banco de Dados!";
@@ -59,9 +59,11 @@ public class Label {
 	public static String ERROR_DELETING_CREDENTIALS = "Erro ao apagar as credenciais!";
 	public static String ERROR_LOADING_SETTINGS = "Erro ao carregar as configurações!";
 	public static String ERROR_SAVING_SETTINGS = "Erro ao salvar as configurações!";
+	public static String ERROR_EMPTY_FIELD_DATE = "O campo data está em branco!";
+	public static String HOUR_PRICE_CHANGED_TO = "O valor da hora foi alterado para: ";
+	public static String SUCCESSFUL_OPERATION = "Operação realizada com sucesso!";
 	
 	//Exceções
-	public static String EXCEPTION_EMPTY_FIELD = "O campo data está em branco!";
 	
 	//Codigo
 	public static String CAUSE = "Causa";

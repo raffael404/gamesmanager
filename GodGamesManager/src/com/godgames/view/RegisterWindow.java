@@ -207,7 +207,7 @@ public class RegisterWindow {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (pickerDate.getDate() == null) {
-					ErrorMessage.showErrorMessage(dlgRegister, Label.ERROR_WRONG_FORMAT, new Exception(Label.EXCEPTION_EMPTY_FIELD));
+					ErrorMessage.showErrorMessage(dlgRegister, Label.ERROR_WRONG_FORMAT, new Exception(Label.ERROR_EMPTY_FIELD_DATE));
 				} else {
 					try {
 						Register register = new Register(FormatConverter.date2String(pickerDate.getDate()),
@@ -274,7 +274,7 @@ public class RegisterWindow {
 		}
 		
 		if (register.getValue() != 0)
-			textFieldPrice.setText(String.valueOf(register.getValue()));
+			textFieldPrice.setText(String.format("%.2f", register.getValue()));
 		if (register.getTv() != 0)
 			textFieldTv.setText(String.valueOf(register.getTv()));
 		
