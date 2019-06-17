@@ -5,6 +5,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 public class FormatConverter {
 	private static final SimpleDateFormat leConverter = new SimpleDateFormat("dd/MM/yyyy");
 	private static final SimpleDateFormat beConverter = new SimpleDateFormat("yyyy-MM-dd");
@@ -36,5 +39,21 @@ public class FormatConverter {
 	
 	public static String float2Currency(float f) {
 		return NumberFormat.getCurrencyInstance().format(f);
+	}
+	
+	public static String encrypt(String text, String key) throws Exception {
+		SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "Blowfish");
+		Cipher cipher = Cipher.getInstance("Blowfish");
+		cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+		byte[] encrypted = cipher.doFinal(text.getBytes());
+		return new String(encrypted);
+	}
+	
+	public static String decrypt(String encryptedText, String key) throws Exception {
+		SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "Blowfish");
+		Cipher cipher = Cipher.getInstance("Blowfish");
+		cipher.init(Cipher.DECRYPT_MODE, keySpec);
+		byte[] decrypted = cipher.doFinal(encryptedText.getBytes());
+		return new String(decrypted);
 	}
 }

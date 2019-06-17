@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Date;
@@ -28,6 +32,11 @@ import com.godgames.model.Register;
 import com.godgames.util.ErrorMessage;
 import com.godgames.util.FormatConverter;
 import com.godgames.util.Label;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
+import javax.swing.JPasswordField;
 
 public class MainWindow {
 
@@ -39,28 +48,33 @@ public class MainWindow {
 	private DefaultTableModel tableModelTotal = new DefaultTableModel();
 	
 	private Database database;
+	private JTextField textFieldUser;
+	private JTextField textFieldHourPrice;
+	private JPasswordField passwordField;
 
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-					MainWindow window = new MainWindow();
-					window.frmMain.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	//TODO padronizar o tamanho e a posição dos componentes
+//	public static void main(String[] args) {
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//				try {
+//					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//					MainWindow window = new MainWindow();
+//					window.frmMain.setVisible(true);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//	}
 
 	/**
 	 * Create the application.
 	 */
-	public MainWindow() {
+	public MainWindow(Database database) {
+		this.database = database;
 		initialize();
 	}
 
@@ -81,20 +95,18 @@ public class MainWindow {
 		tabbedPane.addTab(Label.TITLE_TAB_REGISTERS, null, panelRegisters, null);
 		
 		JButton btnAdd = new JButton(Label.ADD);
-		btnAdd.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
+		JButton btnEdit = new JButton(Label.EDIT);
+		JButton btnRemove = new JButton(Label.REMOVE);
+//		btnAdd.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//			}
+//		});
 		
 		JScrollPane scrollPaneRegisters = new JScrollPane();
 		
 		JScrollPane scrollPaneTotal = new JScrollPane();
 		scrollPaneTotal.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		scrollPaneTotal.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
-		JButton btnEdit = new JButton(Label.EDIT);
-		
-		JButton btnRemove = new JButton(Label.REMOVE);
 		
 		tableModelRegisters.addColumn(Label.DATE);
 		tableModelRegisters.addColumn(Label.START_HOUR);
@@ -184,8 +196,69 @@ public class MainWindow {
 		tableTotal.getColumnModel().getColumn(1).setPreferredWidth(50);
 		tableTotal.getColumnModel().getColumn(2).setPreferredWidth(50);
 		
-		JPanel panel_1 = new JPanel();
-		tabbedPane.addTab(Label.TITLE_TAB_CHANGE, null, panel_1, null);
+		JPanel panelSettings = new JPanel();
+		tabbedPane.addTab(Label.TITLE_TAB_SETTINGS, null, panelSettings, null);
+		
+		JPanel panelPrice = new JPanel();
+		panelPrice.setBorder(new TitledBorder(null, Label.SAVED_CREDENTIALS, TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		
+		JPanel panelCredentials = new JPanel();
+		panelCredentials.setBorder(new TitledBorder(null, Label.CHARGES, TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		GroupLayout gl_panelSettings = new GroupLayout(panelSettings);
+		gl_panelSettings.setHorizontalGroup(
+			gl_panelSettings.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_panelSettings.createSequentialGroup()
+					.addGroup(gl_panelSettings.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panelSettings.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(panelPrice, GroupLayout.DEFAULT_SIZE, 659, Short.MAX_VALUE))
+						.addGroup(gl_panelSettings.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(panelCredentials, GroupLayout.DEFAULT_SIZE, 659, Short.MAX_VALUE)))
+					.addContainerGap())
+		);
+		gl_panelSettings.setVerticalGroup(
+			gl_panelSettings.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panelSettings.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(panelPrice, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panelCredentials, GroupLayout.PREFERRED_SIZE, 55, GroupLayout.PREFERRED_SIZE)
+					.addGap(266))
+		);
+		
+		JLabel lblHourPrice = new JLabel(Label.HOUR_PRICE);
+		panelCredentials.add(lblHourPrice);
+		
+		textFieldHourPrice = new JTextField();
+		textFieldHourPrice.setHorizontalAlignment(SwingConstants.CENTER);
+		panelCredentials.add(textFieldHourPrice);
+		textFieldHourPrice.setColumns(10);
+		
+		JButton btnChange = new JButton(Label.CHANGE);
+		panelCredentials.add(btnChange);
+		
+		JLabel lblUser = new JLabel(Label.USER);
+		panelPrice.add(lblUser);
+		
+		textFieldUser = new JTextField();
+		textFieldUser.setHorizontalAlignment(SwingConstants.CENTER);
+		panelPrice.add(textFieldUser);
+		textFieldUser.setEditable(false);
+		textFieldUser.setColumns(10);
+		
+		JLabel lblPassword = new JLabel(Label.PASSWORD);
+		panelPrice.add(lblPassword);
+		
+		passwordField = new JPasswordField();
+		passwordField.setHorizontalAlignment(SwingConstants.CENTER);
+		passwordField.setEditable(false);
+		passwordField.setColumns(10);
+		panelPrice.add(passwordField);
+		
+		JButton btnDelete = new JButton(Label.DELETE);
+		panelPrice.add(btnDelete);
+		panelSettings.setLayout(gl_panelSettings);
 		
 		btnToday.addActionListener(new ActionListener() {
 			
@@ -235,7 +308,7 @@ public class MainWindow {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				RegisterWindow newRegister = new RegisterWindow(MainWindow.this);
+				RegisterWindow newRegister = new RegisterWindow(MainWindow.this, null, Float.valueOf((String) textFieldHourPrice.getText()));
 				newRegister.getFrame().setVisible(true);
 				updateTotalTable();
 			}
@@ -252,8 +325,8 @@ public class MainWindow {
 							(String) tableModelRegisters.getValueAt(row, 2),
 							(Integer) tableModelRegisters.getValueAt(row, 3),
 							((String) tableModelRegisters.getValueAt(row, 4)).equals("Sim"),
-							Float.valueOf(((String) tableModelRegisters.getValueAt(row, 5)).split(" ")[1].replace(",", ".")));
-					RegisterWindow editRegister = new RegisterWindow(MainWindow.this, register);
+							Float.valueOf(((String) tableModelRegisters.getValueAt(row, 5)).substring(3).replace(",", ".")));
+					RegisterWindow editRegister = new RegisterWindow(MainWindow.this, register, Float.valueOf((String) textFieldHourPrice.getText()));
 					editRegister.getFrame().setVisible(true);
 					updateTotalTable();
 				}
@@ -274,21 +347,66 @@ public class MainWindow {
 			}
 		});
 		
-		createDatabaseConnection("localhost", "god_games", "root", "root");
+		btnDelete.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Files.deleteIfExists(Paths.get(Label.CREDENTIALS_FILE_NAME));
+					textFieldUser.setText(null);
+					passwordField.setText(null);
+				} catch (IOException e1) {
+					ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DELETING_CREDENTIALS, e1);
+				}
+			}
+		});
+		
+		btnChange.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					String hourPrice = ((String) textFieldHourPrice.getText()).replace(",", ".");
+					Float.valueOf(hourPrice);
+					Files.write(Paths.get(Label.SETTINGS_FILE_NAME), hourPrice.getBytes());
+				} catch (NumberFormatException e1) {
+					ErrorMessage.showErrorMessage(frmMain, Label.ERROR_WRONG_FORMAT, e1);
+				} catch (Exception e1) {
+					ErrorMessage.showErrorMessage(frmMain, Label.ERROR_LOADING_CREDENTIALS, e1);
+				}
+			}
+		});
+		
+		//TODO formatar os campos de texto float pra mostrarem 2 casas decimais
+		
+		try {
+			String[] credentials = new String(Files.readAllBytes(Paths.get(Label.CREDENTIALS_FILE_NAME))).split("\n");
+			textFieldUser.setText(credentials[0]);
+			passwordField.setText(FormatConverter.decrypt(credentials[1], Label.ENCRYPTION_KEY));
+		} catch (NoSuchFileException e) {
+			System.out.println("O arquivo de credenciais não foi criado!");
+		} catch (Exception e1) {
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_LOADING_CREDENTIALS, e1);
+		}
+		
+		try {
+			String hourPrice = new String(Files.readAllBytes(Paths.get(Label.SETTINGS_FILE_NAME)));
+			textFieldHourPrice.setText(hourPrice);
+		} catch (NoSuchFileException e) {
+			try {
+				Files.write(Paths.get(Label.SETTINGS_FILE_NAME), "2".getBytes());
+				textFieldHourPrice.setText("2");
+			} catch (IOException e1) {
+				ErrorMessage.showErrorMessage(frmMain, Label.ERROR_SAVING_SETTINGS, e1);
+			}
+		} catch (IOException e) {
+			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_LOADING_SETTINGS, e);
+		}
+		
 		String today = FormatConverter.date2String(new Date());
 		updateRegistersTable(today, today);
 		updateTotalTable();
 
-	}
-	
-	private void createDatabaseConnection(String serverName, String databaseName, String user, String password){
-		try {
-			database = new Database(serverName, databaseName, user, password);
-		} catch (ClassNotFoundException e1) {
-			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DRIVER_NOT_FOUND, e1);
-		} catch (SQLException e1) {
-			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_DATABASE_CONNECTION, e1);
-		}
 	}
 	
 	private Object[] register2TableObject(Register register) {
@@ -382,10 +500,10 @@ public class MainWindow {
 			Object object[] = register2TableObject(register);
 			tableModelRegisters.addRow(object);
 			
-			float searchTotal = Float.parseFloat(((String) tableModelTotal.getValueAt(0, 3))
-					.split(" ")[1].replace(",", "."));
-			searchTotal += register.getValue();
-			tableModelTotal.setValueAt(FormatConverter.float2Currency(searchTotal), 0, 3);
+//			float searchTotal = Float.parseFloat(((String) tableModelTotal.getValueAt(0, 3))
+//					.split(" ")[1].replace(",", "."));
+//			searchTotal += register.getValue();
+//			tableModelTotal.setValueAt(FormatConverter.float2Currency(searchTotal), 0, 3);
 		} catch (SQLException e) {
 			ErrorMessage.showErrorMessage(frmMain, Label.ERROR_INSERTING_DATABASE_DATA, e);
 		}

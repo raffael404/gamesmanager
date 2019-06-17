@@ -29,8 +29,13 @@ public class Database {
 	private Connection getMySQLConnection(String serverName, String databaseName, String userName, String password)
 			throws ClassNotFoundException, SQLException {
 		Connection connection = null;
-		Class.forName("com.mysql.jdbc.Driver");
-		connection = DriverManager.getConnection("jdbc:mysql://" + serverName + "/" + databaseName, userName, password);
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		connection = DriverManager.getConnection("jdbc:mysql://" + serverName + "/" + "?useTimezone=true&serverTimezone=America/Sao_Paulo", userName, password);
+		Statement st = connection.createStatement();
+		st.executeUpdate("create database if not exists " + databaseName);
+		st.close();
+		connection.close();
+		connection = DriverManager.getConnection("jdbc:mysql://" + serverName + "/" + databaseName + "?useTimezone=true&serverTimezone=America/Sao_Paulo", userName, password);
 		return connection;
 	}
 	

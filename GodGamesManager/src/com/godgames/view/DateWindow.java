@@ -39,7 +39,7 @@ public class DateWindow {
 		dlgDate.setModal(true);
 		dlgDate.setResizable(false);
 		dlgDate.setTitle(Label.TITLE_WINDOW_DATE);
-		dlgDate.setBounds(100, 100, 405, 85);
+		dlgDate.setBounds(100, 100, 410, 90);
 		dlgDate.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		dlgDate.setLocationRelativeTo(mainWindow.getFrame());
 		
@@ -48,11 +48,11 @@ public class DateWindow {
 		panel.setLayout(null);
 		
 		JPanel panelFrom = new JPanel();
-		panelFrom.setBounds(40, 11, 99, 32);
+		panelFrom.setBounds(33, 11, 99, 32);
 		panel.add(panelFrom);
 		
 		JPanel panelTo = new JPanel();
-		panelTo.setBounds(179, 11, 99, 32);
+		panelTo.setBounds(169, 11, 99, 32);
 		panel.add(panelTo);
 		
 		pickerFrom = new JXDatePicker();
@@ -66,15 +66,15 @@ public class DateWindow {
         panelTo.add(pickerTo);
         
         JButton btnOk = new JButton(Label.OK);
-        btnOk.setBounds(288, 11, 89, 32);
+        btnOk.setBounds(278, 15, 107, 25);
         panel.add(btnOk);
         
         JLabel lblFrom = new JLabel(Label.FROM);
-        lblFrom.setBounds(10, 11, 30, 32);
+        lblFrom.setBounds(10, 11, 13, 32);
         panel.add(lblFrom);
         
         JLabel lblTo = new JLabel(Label.TO);
-        lblTo.setBounds(149, 11, 30, 32);
+        lblTo.setBounds(142, 11, 17, 32);
         panel.add(lblTo);
         
         btnOk.addActionListener(new ActionListener() {

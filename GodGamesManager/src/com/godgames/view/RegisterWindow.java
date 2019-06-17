@@ -6,6 +6,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,8 +51,7 @@ public class RegisterWindow {
 	private JXDatePicker pickerDate;
 	private JSpinner startTimeSpinner, endTimeSpinner;
 	
-	//TODO buscar em arquivo
-	private float hourPrice = 2;
+	private float hourPrice;
 	
 	private MainWindow mainWindow;
 	
@@ -58,18 +61,18 @@ public class RegisterWindow {
 	/**
 	 * Create the application.
 	 */
-	public RegisterWindow(MainWindow mainWindow, Register register) {
+	public RegisterWindow(MainWindow mainWindow, Register register, float hourPrice) {
 		this.mainWindow = mainWindow;
-		this.dateKey = register.getDate();
-		this.timeKey = register.getStartTime();
-		this.register = register;
-		initialize();
-	}
-	
-	public RegisterWindow(MainWindow mainWindow) {
-		this.mainWindow = mainWindow;
-		this.register = new Register(
-				FormatConverter.date2String(new Date()), FormatConverter.time2String(new Date()), FormatConverter.time2String(new Date()), 0, false, 0);
+		this.hourPrice = hourPrice;
+		
+		if (register == null) {
+			this.register = new Register(
+					FormatConverter.date2String(new Date()), FormatConverter.time2String(new Date()), FormatConverter.time2String(new Date()), 0, false, 0);
+		} else {
+			this.dateKey = register.getDate();
+			this.timeKey = register.getStartTime();
+			this.register = register;			
+		}
 		initialize();
 	}
 	
@@ -81,45 +84,45 @@ public class RegisterWindow {
 		dlgRegister.setTitle(Label.TITLE_WINDOW_REGISTERS);
 		dlgRegister.setModal(true);
 		dlgRegister.setResizable(false);
-		dlgRegister.setBounds(100, 100, 590, 100);
+		dlgRegister.setBounds(100, 100, 570, 110);
 		dlgRegister.setLocationRelativeTo(mainWindow.getFrame());
 		dlgRegister.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		dlgRegister.getContentPane().setLayout(null);
 		
 		JLabel lblPrice = new JLabel(Label.PRICE);
 		lblPrice.setHorizontalAlignment(SwingConstants.CENTER);
-		lblPrice.setBounds(10, 11, 46, 14);
+		lblPrice.setBounds(10, 11, 27, 14);
 		dlgRegister.getContentPane().add(lblPrice);
 		
 		textFieldPrice = new JTextField();
 		textFieldPrice.setHorizontalAlignment(SwingConstants.CENTER);
-		textFieldPrice.setBounds(66, 8, 99, 20);
+		textFieldPrice.setBounds(47, 7, 99, 22);
 		dlgRegister.getContentPane().add(textFieldPrice);
 		textFieldPrice.setColumns(10);
 		
 		JLabel lblPago = new JLabel(Label.PAID);
 		lblPago.setHorizontalAlignment(SwingConstants.CENTER);
-		lblPago.setBounds(314, 11, 46, 14);
+		lblPago.setBounds(308, 11, 27, 14);
 		dlgRegister.getContentPane().add(lblPago);
 		
 		JLabel lblTv = new JLabel(Label.TV);
 		lblTv.setHorizontalAlignment(SwingConstants.CENTER);
-		lblTv.setBounds(162, 11, 46, 14);
+		lblTv.setBounds(156, 11, 13, 14);
 		dlgRegister.getContentPane().add(lblTv);
 		
 		textFieldTv = new JTextField();
 		textFieldTv.setHorizontalAlignment(SwingConstants.CENTER);
-		textFieldTv.setBounds(218, 8, 99, 20);
+		textFieldTv.setBounds(199, 7, 99, 22);
 		dlgRegister.getContentPane().add(textFieldTv);
 		textFieldTv.setColumns(10);
 		
 		JLabel lblDate = new JLabel(Label.DATE);
 		lblDate.setHorizontalAlignment(SwingConstants.CENTER);
-		lblDate.setBounds(10, 36, 46, 27);
+		lblDate.setBounds(10, 31, 27, 32);
 		dlgRegister.getContentPane().add(lblDate);
 		
 		JPanel panelDate = new JPanel();
-		panelDate.setBounds(66, 31, 99, 32);
+		panelDate.setBounds(47, 31, 99, 32);
 		dlgRegister.getContentPane().add(panelDate);
 		
 		pickerDate = new JXDatePicker();
@@ -128,7 +131,7 @@ public class RegisterWindow {
 		panelDate.add(pickerDate);
 		
 		JPanel panelStartTime = new JPanel();
-		panelStartTime.setBounds(218, 31, 99, 32);
+		panelStartTime.setBounds(199, 31, 99, 32);
 		dlgRegister.getContentPane().add(panelStartTime);
 		
 		startTimeSpinner = new JSpinner(new SpinnerDateModel());
@@ -138,7 +141,7 @@ public class RegisterWindow {
 		panelStartTime.add(startTimeSpinner);
 		
 		JPanel panelEndTime = new JPanel();
-		panelEndTime.setBounds(366, 31, 99, 32);
+		panelEndTime.setBounds(336, 31, 99, 32);
 		dlgRegister.getContentPane().add(panelEndTime);
 		
 		endTimeSpinner = new JSpinner(new SpinnerDateModel());
@@ -149,30 +152,30 @@ public class RegisterWindow {
 				
 		JLabel lblBegin = new JLabel(Label.START);
 		lblBegin.setHorizontalAlignment(SwingConstants.CENTER);
-		lblBegin.setBounds(162, 31, 46, 32);
+		lblBegin.setBounds(156, 31, 33, 32);
 		dlgRegister.getContentPane().add(lblBegin);
 		
 		JLabel lblEnd = new JLabel(Label.END);
 		lblEnd.setHorizontalAlignment(SwingConstants.CENTER);
-		lblEnd.setBounds(314, 31, 46, 32);
+		lblEnd.setBounds(308, 31, 18, 32);
 		dlgRegister.getContentPane().add(lblEnd);
 		
 		chckbxEditDateTime = new JCheckBox(Label.EDIT_DATE_TIME);
-		chckbxEditDateTime.setBounds(471, 34, 107, 29);
+		chckbxEditDateTime.setBounds(441, 31, 107, 32);
 		dlgRegister.getContentPane().add(chckbxEditDateTime);
 		
 		rdbtnYes = new JRadioButton(Label.YES);
 		buttonGroup.add(rdbtnYes);
-		rdbtnYes.setBounds(366, 9, 46, 18);
+		rdbtnYes.setBounds(341, 9, 46, 18);
 		dlgRegister.getContentPane().add(rdbtnYes);
 		
 		rdbtnNo = new JRadioButton(Label.NO);
 		buttonGroup.add(rdbtnNo);
-		rdbtnNo.setBounds(419, 11, 46, 14);
+		rdbtnNo.setBounds(389, 11, 46, 14);
 		dlgRegister.getContentPane().add(rdbtnNo);
 		
 		JButton btnOK = new JButton(Label.OK);
-		btnOK.setBounds(485, 7, 89, 23);
+		btnOK.setBounds(441, 6, 107, 25);
 		dlgRegister.getContentPane().add(btnOK);
 		
 		chckbxEditDateTime.addMouseListener(new MouseListener() {
@@ -256,8 +259,24 @@ public class RegisterWindow {
 			}
 		});
 		
-		textFieldPrice.setText(String.valueOf(register.getValue()));
-		textFieldTv.setText(String.valueOf(register.getTv()));
+		try {
+			String price = new String(Files.readAllBytes(Paths.get(Label.SETTINGS_FILE_NAME)));
+			hourPrice = Float.valueOf(price);
+		} catch (NoSuchFileException e) {
+			try {
+				Files.write(Paths.get(Label.SETTINGS_FILE_NAME), "2".getBytes());
+				hourPrice = 2;
+			} catch (IOException e1) {
+				ErrorMessage.showErrorMessage(dlgRegister, Label.ERROR_SAVING_SETTINGS, e1);
+			}
+		} catch (IOException e) {
+			ErrorMessage.showErrorMessage(dlgRegister, Label.ERROR_LOADING_SETTINGS, e);
+		}
+		
+		if (register.getValue() != 0)
+			textFieldPrice.setText(String.valueOf(register.getValue()));
+		if (register.getTv() != 0)
+			textFieldTv.setText(String.valueOf(register.getTv()));
 		
 		try {
 			pickerDate.setDate(FormatConverter.string2Date(register.getDate()));
